@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Secure Galaxy Access</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --success: #10b981;
+      --error: #ef4444;
+      --dark-bg: #0d1117;
+      --white: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: var(--dark-bg);
+      color: var(--white);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+      animation: stars 60s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes stars {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-500px, 500px); }
+    }
+
+    .container {
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.85);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: var(--primary);
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+
+    .scan-box {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 30px;
+      background: rgba(14, 165, 233, 0.1);
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .scan-box:hover {
+      transform: scale(1.05);
+    }
+
+    .scan-box i {
+      font-size: 50px;
+      color: var(--primary);
+    }
+
+    .scan-box.active {
+      animation: pulseScan 1.5s linear forwards;
+    }
+
+    @keyframes pulseScan {
+      0% { transform: scale(1); border-color: var(--primary); }
+      50% { transform: scale(1.1); border-color: var(--success); }
+      100% { transform: scale(1); border-color: var(--success); }
+    }
+
+    .form {
+      display: none;
+      animation: fadeIn 0.6s ease-in-out forwards;
+    }
+
+    .form input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #1f2937;
+      color: var(--white);
+      font-size: 1rem;
+    }
+
+    .form button {
+      width: 100%;
+      background: var(--primary);
+      padding: 12px;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .form button:hover {
+      background: #0284c7;
+    }
+
+    .success-message {
+      display: none;
+      text-align: center;
+      animation: fadeIn 0.6s ease-in-out forwards;
+    }
+
+    .success-message i {
+      font-size: 50px;
+      color: var(--success);
+      margin-bottom: 15px;
+    }
+
+    .typing {
+      display: inline-block;
+      border-right: 2px solid var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      animation: typing 2s steps(20, end) forwards;
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Gates */
+    #gateScreen {
+      display: none;
+      position: relative;
+      height: 100px;
+      margin: 30px 0;
+    }
+
+    #leftGate, #rightGate {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      background: #111827;
+      transition: transform 1s ease;
+      z-index: 10;
+    }
+
+    #leftGate {
+      left: 0;
+      border-radius: 8px 0 0 8px;
+    }
+
+    #rightGate {
+      right: 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+
+      .scan-box {
+        width: 120px;
+        height: 120px;
+      }
+
+      .scan-box i {
+        font-size: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1><i class="fas fa-shield-alt"></i> Secure Login</h1>
+      <p>Tap and hold to scan your fingerprint</p>
+
+      <div class="scan-box" id="fingerScan">
+        <i class="fas fa-fingerprint"></i>
+      </div>
+
+      <!-- Gate Animation -->
+      <div id="gateScreen">
+        <div id="leftGate"></div>
+        <div id="rightGate"></div>
+      </div>
+
+      <!-- Login Form -->
+      <div class="form" id="loginForm">
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+      </div>
+
+      <!-- Success Message -->
+      <div class="success-message" id="successBox">
+        <i class="fas fa-check-circle"></i>
+        <h2 class="typing" id="typedMsg">Access Granted. Redirecting...</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beep sound -->
+  <audio id="beepSound" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
+
+  <script>
+    const fingerScan = document.getElementById('fingerScan');
+    const loginForm = document.getElementById('loginForm');
+    const successBox = document.getElementById('successBox');
+    const beep = document.getElementById('beepSound');
+    const gateScreen = document.getElementById('gateScreen');
+    const leftGate = document.getElementById('leftGate');
+    const rightGate = document.getElementById('rightGate');
+    let pressTimer;
+
+    fingerScan.addEventListener('pointerdown', () => {
+      fingerScan.classList.add('active');
+      pressTimer = setTimeout(() => {
+        fingerScan.classList.remove('active');
+        beep.play();
+
+        gateScreen.style.display = 'block';
+        leftGate.style.transform = 'translateX(-100%)';
+        rightGate.style.transform = 'translateX(100%)';
+
+        setTimeout(() => {
+          gateScreen.style.display = 'none';
+          loginForm.style.display = 'block';
+        }, 1000); // gate animation 1 sec
+      }, 1500); // hold 1.5 sec
+    });
+
+    fingerScan.addEventListener('pointerup', () => {
+      clearTimeout(pressTimer);
+      fingerScan.classList.remove('active');
+    });
+
+    function login() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+
+      if (user === 's' && pass === 'teamz') {
+        loginForm.style.display = 'none';
+        successBox.style.display = 'block';
+        setTimeout(() => {
+          window.location.href = './public/dashboard.html'; // redirect page
+        }, 3000);
+      } else {
+        alert('Invalid credentials');
+      }
+    }
+  </script>
+</body>
+</html>
