@@ -1,59 +1,191 @@
 <!-- public/view-client.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <title>View Client</title>
+  <title>View Client | ClientMgmt</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS and DaisyUI -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#4338ca",
+            secondary: "#f97316",
+          }
+        }
+      },
+      daisyui: {
+        themes: ["light", "dark"],
+      },
+    }
+  </script>
 </head>
-<body class="bg-gray-100">
-  <!-- Navigation Bar -->
-  <nav class="bg-blue-600">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <div class="flex items-center">
-          <a href="index.html" class="text-white text-xl font-bold">ClientMgmt</a>
-          <div class="hidden md:block ml-10">
-            <div class="flex items-baseline space-x-4">
-              <a href="index.html" class="text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Add Client</a>
-              <a href="dashboard.html" class="text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Dashboard</a>
-            </div>
-          </div>
+<body class="min-h-screen bg-base-200">
+  <!-- Drawer for mobile navigation -->
+  <div class="drawer lg:drawer-open">
+    <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+    <div class="drawer-content flex flex-col">
+      <!-- Navbar -->
+      <div class="navbar bg-primary text-primary-content shadow-lg sticky top-0 z-30">
+        <div class="flex-none lg:hidden">
+          <label for="drawer-toggle" class="btn btn-square btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </label>
         </div>
-        <!-- Mobile menu button -->
-        <div class="md:hidden">
-          <button type="button" class="text-white inline-flex items-center justify-center p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-600 focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
-            <span class="sr-only">Open main menu</span>
-            <svg class="block h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        <div class="flex-1">
+          <a href="index.html" class="btn btn-ghost normal-case text-xl">ClientMgmt</a>
+        </div>
+        <div class="flex-none">
+          <button id="theme-toggle" class="btn btn-ghost btn-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </button>
         </div>
       </div>
-    </div>
-    <!-- Mobile menu -->
-    <div class="md:hidden" id="mobile-menu">
-      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-        <a href="index.html" class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700">Add Client</a>
-        <a href="dashboard.html" class="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700">Dashboard</a>
+
+      <!-- Main Content -->
+      <div class="p-4 md:p-6 lg:p-8">
+        <!-- Loading Spinner (shown initially, hidden when data loads) -->
+        <div id="loadingSpinner" class="flex flex-col items-center justify-center py-12">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <p class="mt-4 text-center text-base-content/70">Loading client details...</p>
+        </div>
+
+        <!-- Main Content: View Client Details -->
+        <div id="mainContent" class="hidden">
+          <!-- Back Navigation -->
+          <div class="mb-6">
+            <a href="dashboard.html" class="btn btn-outline btn-sm gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Back to Dashboard
+            </a>
+          </div>
+          
+          <!-- Client Details Section -->
+          <div id="clientDetails" class="card bg-base-100 shadow-xl overflow-hidden">
+            <!-- Client details & editing form will be loaded here via JavaScript -->
+          </div>
+        </div>
+        
+        <!-- Error Display (hidden by default) -->
+        <div id="errorContent" class="hidden">
+          <div class="alert alert-error shadow-lg max-w-md mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div>
+              <h3 class="font-bold">Error!</h3>
+              <div id="errorMessage" class="text-sm">Unable to load client details.</div>
+            </div>
+          </div>
+          <div class="flex justify-center mt-6">
+            <a href="dashboard.html" class="btn btn-primary">Return to Dashboard</a>
+          </div>
+        </div>
       </div>
     </div>
-  </nav>
-
-  <!-- Main Content: View Client Details -->
-  <div class="max-w-3xl mx-auto bg-white p-8 rounded shadow mt-8">
-    <h1 class="text-2xl font-bold mb-4">Client Details</h1>
-    <div id="clientDetails">
-      <!-- Client details & editing form will be loaded here via JavaScript -->
-    </div>
-    <div class="mt-6">
-      <a href="dashboard.html" class="text-blue-500 underline">Back to Dashboard</a>
+    
+    <!-- Sidebar -->
+    <div class="drawer-side z-40">
+      <label for="drawer-toggle" class="drawer-overlay"></label>
+      <aside class="bg-base-100 w-64 h-full">
+        <div class="px-4 py-6 flex flex-col">
+          <div class="flex items-center mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-primary mr-2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
+            </svg>
+            <span class="text-xl font-bold">ClientMgmt</span>
+          </div>
+          <ul class="menu menu-md menu-vertical px-0 gap-1">
+            <li>
+              <a href="index.html" class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Client
+              </a>
+            </li>
+            <li>
+              <a href="dashboard.html" class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
+              </a>
+            </li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </div>
-  
+
+  <!-- Delete Confirmation Modal -->
+  <dialog id="delete-confirm-modal" class="modal modal-bottom sm:modal-middle">
+    <form method="dialog" class="modal-box">
+      <h3 class="font-bold text-lg">Confirm Delete</h3>
+      <p class="py-4">Are you sure you want to delete this client? This action cannot be undone.</p>
+      <div class="modal-action">
+        <button class="btn">Cancel</button>
+        <button id="confirm-delete-btn" class="btn btn-error">Delete</button>
+      </div>
+    </form>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
   <!-- JavaScript for loading client details, editing, and deletion -->
   <script type="module" src="../src/js/view-client.js"></script>
+  
+  <!-- Theme toggle script -->
+  <script>
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      const htmlElement = document.documentElement;
+      const currentTheme = htmlElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      htmlElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+    
+    // Set theme from localStorage on load
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      // Mobile responsiveness handlers
+      const drawerToggle = document.getElementById('drawer-toggle');
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) { // lg breakpoint
+          drawerToggle.checked = false;
+        }
+      });
+      
+      // Close drawer when clicking menu items on mobile
+      const menuItems = document.querySelectorAll(".drawer-side .menu a");
+      menuItems.forEach(item => {
+        item.addEventListener("click", () => {
+          if (window.innerWidth < 1024) { // lg breakpoint in Tailwind
+            drawerToggle.checked = false;
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
